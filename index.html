@@ -38,13 +38,21 @@
       transform-origin: center;
     }
     
-    .orbit {
+    .orbit-container {
       position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.2);
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+    
+    .orbit {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      transform-origin: center;
     }
     
     .mercury {
@@ -214,17 +222,19 @@
   <div class="solar-system" id="solar-system">
     <div class="sun"></div>
     
-    <!-- 軌道 -->
-    <div class="orbit" style="width: 160px; height: 160px;"></div>
-    <div class="orbit" style="width: 220px; height: 220px;"></div>
-    <div class="orbit" style="width: 300px; height: 300px;"></div>
-    <div class="orbit" style="width: 380px; height: 380px;"></div>
-    <div class="orbit" style="width: 520px; height: 520px;"></div>
-    <div class="orbit" style="width: 660px; height: 660px;"></div>
-    <div class="orbit" style="width: 780px; height: 780px;"></div>
-    <div class="orbit" style="width: 900px; height: 900px;"></div>
+    <!-- 軌道 (Orbits) - Now in separate containers for each orbit -->
+    <div class="orbit-container" id="orbit-container">
+      <div class="orbit" id="orbit-mercury" style="width: 160px; height: 160px;"></div>
+      <div class="orbit" id="orbit-venus" style="width: 220px; height: 220px;"></div>
+      <div class="orbit" id="orbit-earth" style="width: 300px; height: 300px;"></div>
+      <div class="orbit" id="orbit-mars" style="width: 380px; height: 380px;"></div>
+      <div class="orbit" id="orbit-jupiter" style="width: 520px; height: 520px;"></div>
+      <div class="orbit" id="orbit-saturn" style="width: 660px; height: 660px;"></div>
+      <div class="orbit" id="orbit-uranus" style="width: 780px; height: 780px;"></div>
+      <div class="orbit" id="orbit-neptune" style="width: 900px; height: 900px;"></div>
+    </div>
     
-    <!-- 惑星 -->
+    <!-- 惑星 (Planets) -->
     <div class="planet mercury" id="mercury">
       <div class="planet-label">水星</div>
     </div>
@@ -278,16 +288,16 @@
   </div>
 
   <script>
-    // 各惑星の回転速度（日数を相対値で表現）
+    // 各惑星の回転速度と距離（日数と軌道を相対値で表現）
     const planets = [
-      { id: 'mercury', speed: 0.24, distance: 80, angle: 0 },
-      { id: 'venus', speed: 0.62, distance: 110, angle: 0 },
-      { id: 'earth', speed: 1.0, distance: 150, angle: 0 },
-      { id: 'mars', speed: 1.88, distance: 190, angle: 0 },
-      { id: 'jupiter', speed: 11.86, distance: 260, angle: 0 },
-      { id: 'saturn', speed: 29.46, distance: 330, angle: 0 },
-      { id: 'uranus', speed: 84.01, distance: 390, angle: 0 },
-      { id: 'neptune', speed: 164.8, distance: 450, angle: 0 }
+      { id: 'mercury', speed: 0.24, distance: 80, angle: 0, orbitId: 'orbit-mercury' },
+      { id: 'venus', speed: 0.62, distance: 110, angle: 0, orbitId: 'orbit-venus' },
+      { id: 'earth', speed: 1.0, distance: 150, angle: 0, orbitId: 'orbit-earth' },
+      { id: 'mars', speed: 1.88, distance: 190, angle: 0, orbitId: 'orbit-mars' },
+      { id: 'jupiter', speed: 11.86, distance: 260, angle: 0, orbitId: 'orbit-jupiter' },
+      { id: 'saturn', speed: 29.46, distance: 330, angle: 0, orbitId: 'orbit-saturn' },
+      { id: 'uranus', speed: 84.01, distance: 390, angle: 0, orbitId: 'orbit-uranus' },
+      { id: 'neptune', speed: 164.8, distance: 450, angle: 0, orbitId: 'orbit-neptune' }
     ];
     
     // 視点の状態
@@ -313,10 +323,11 @@
       }
     }
     
-    // 惑星を動かす
+    // 惑星とその軌道を動かす
     function movePlanets() {
       planets.forEach(planet => {
         const planetEl = document.getElementById(planet.id);
+        const orbitEl = document.getElementById(planet.orbitId);
         const speed = planet.speed / 10 * speedFactor;
         
         // 角度を更新
@@ -329,6 +340,9 @@
           const y = Math.sin(planet.angle) * (planet.distance / 3); // 楕円効果
           planetEl.style.transform = `translate(${x}px, ${y}px)`;
           
+          // 軌道も楕円に変形
+          orbitEl.style.transform = `translate(-50%, -50%) scaleY(0.33)`;
+          
           // サイズ変更で遠近感を出す
           const depth = (Math.sin(planet.angle) + 1) / 2;
           const scale = 0.7 + (depth * 0.3);
@@ -336,12 +350,19 @@
           
           // 遠くの惑星ほど暗く
           planetEl.style.opacity = 0.7 + (depth * 0.3);
+          
+          // 軌道の透明度も調整
+          orbitEl.style.opacity = 0.3;
         } else {
           // 標準の2D表示（真上から見た円軌道）
           const x = Math.cos(planet.angle) * planet.distance;
           const y = Math.sin(planet.angle) * planet.distance;
           planetEl.style.transform = `translate(${x}px, ${y}px)`;
           planetEl.style.opacity = 1;
+          
+          // 軌道を円に戻す
+          orbitEl.style.transform = 'translate(-50%, -50%)';
+          orbitEl.style.opacity = 0.2;
         }
       });
       
